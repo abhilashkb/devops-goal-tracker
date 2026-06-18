@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Add Course | GoalTracker{% endblock %}
+{% block content %}
+<div class="panel-card">
+  <p class="eyebrow mb-1">Course tracker</p>
+  <h1 class="display-6 fw-bold mb-4">{% if goal %}Add course for {{ goal.title }}{% else %}Add course{% endif %}</h1>
+  <form method="post" class="row g-3">
+    <div class="col-12">
+      <div class="alert alert-info mb-0">
+        {% if goal %}
+          This course will be saved under {{ goal.title }}.
+        {% else %}
+          Create a project first, then add a course.
+        {% endif %}
+      </div>
+    </div>
+    <div class="col-12">
+      <label class="form-label">Course name</label>
+      <input class="form-control" name="name" placeholder="KodeKloud Kubernetes" required>
+    </div>
+    <div class="col-md-6">
+      <label class="form-label">Platform</label>
+      <input class="form-control" name="platform" placeholder="KodeKloud" required>
+    </div>
+    <div class="col-md-6">
+      <label class="form-label">Instructor</label>
+      <input class="form-control" name="instructor" placeholder="Optional">
+    </div>
+    <div class="col-12">
+      <label class="form-label">Course URL</label>
+      <input class="form-control" name="url" placeholder="https://..." required>
+    </div>
+    <div class="col-md-4">
+      <label class="form-label">Total lessons</label>
+      <input type="number" class="form-control" name="total_lessons" min="0" value="0">
+    </div>
+    <div class="col-md-4">
+      <label class="form-label">Completed lessons</label>
+      <input type="number" class="form-control" name="completed_lessons" min="0" value="0">
+    </div>
+    <div class="col-md-4">
+      <label class="form-label">Linked skills</label>
+      <select class="form-select" name="skill_ids" multiple size="5">
+        {% if goal %}
+          {% for skill in goal.skills %}
+            <option value="{{ skill.id }}">{{ skill.name }}</option>
+          {% endfor %}
+        {% endif %}
+      </select>
+    </div>
+    <div class="col-12">
+      <label class="form-label">Notes</label>
+      <textarea class="form-control" name="notes" rows="5" placeholder="Optional notes"></textarea>
+    </div>
+    <div class="col-12 d-flex justify-content-between">
+      <a class="btn btn-outline-secondary" href="{% if goal %}{{ url_for('main.goal_detail', goal_id=goal.id) }}{% else %}{{ url_for('main.courses') }}{% endif %}">Cancel</a>
+      <button class="btn btn-primary" {% if not goal %}disabled{% endif %}>Create course</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

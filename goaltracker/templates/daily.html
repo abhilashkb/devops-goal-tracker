@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% block title %}Daily Tasks | GoalTracker{% endblock %}
+{% block content %}
+<div class="row g-4">
+  <div class="col-lg-4">
+    <div class="panel-card">
+      <p class="eyebrow mb-1">Daily to-do</p>
+      <h1 class="display-6 fw-bold mb-3">Lightweight work queue</h1>
+      <form method="post" class="vstack gap-3">
+        <div>
+          <label class="form-label">Task</label>
+          <input class="form-control" name="title" required>
+        </div>
+        <div>
+          <label class="form-label">Due date</label>
+          <input type="date" class="form-control" name="due_date">
+        </div>
+        <div>
+          <label class="form-label">Priority</label>
+          <select class="form-select" name="priority">
+            <option value="1">1 - High</option>
+            <option value="2" selected>2 - Medium</option>
+            <option value="3">3 - Low</option>
+          </select>
+        </div>
+        <div>
+          <label class="form-label">Recurrence</label>
+          <select class="form-select" name="recurrence_type" id="recurrenceType">
+            <option value="none" selected>Does not repeat</option>
+            <option value="interval">Every X days</option>
+            <option value="weekly">Weekly on selected days</option>
+          </select>
+        </div>
+        <div id="intervalGroup" class="d-none">
+          <label class="form-label">Repeat every</label>
+          <div class="input-group">
+            <input type="number" class="form-control" name="recurrence_interval_days" min="1" value="1">
+            <span class="input-group-text">days</span>
+          </div>
+        </div>
+        <div id="weeklyGroup" class="d-none">
+          <label class="form-label d-block">Repeat on</label>
+          <div class="d-flex flex-wrap gap-2">
+            {% for day in ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] %}
+              {% set idx = loop.index0 %}
+              <label class="btn btn-outline-secondary btn-sm">
+                <input type="checkbox" class="btn-check" name="recurrence_days_of_week" value="{{ idx }}"> {{ day }}
+              </label>
+            {% endfor %}
+          </div>
+        </div>
+        <button class="btn btn-primary">Add task</button>
+      </form>
+    </div>
+  </div>
+  <div class="col-lg-8">
+    <div class="panel-card">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="h4 mb-0">Today's pending work</h2>
+        <div class="d-flex align-items-center gap-2">
+          <span class="text-secondary">{{ daily_tasks|selectattr('completed', 'equalto', false)|list|length }} open</span>
+          <form method="post" action="{{ url_for('main.daily_send_summary') }}">
+            <button class="btn btn-sm btn-outline-primary">Send summary</button>
+          </form>
+        </div>
+      </div>
+      {% for task in daily_tasks %}
+        <div class="item-row {% if task.completed %}is-complete{% endif %}">
+          <div>
+            <div class="fw-semibold">{{ task.title }}</div>
+            <div class="small text-secondary">Priority {{ task.priority }}{% if task.due_date %} · Due {{ task.due_date.strftime('%b %d, %Y') }}{% endif %}</div>
+            {% if task.recurring %}
+              <div class="small text-secondary">
+                Recurring:
+                {% if task.recurrence_type == "interval" %}
+                  every {{ task.recurrence_interval_days }} day{{ "s" if task.recurrence_interval_days != 1 else "" }}
+                {% elif task.recurrence_type == "weekly" %}
+                  weekly on {% for day in task.recurrence_days_of_week.split(",") if day != "" %}{{ ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"][day|int] }}{% if not loop.last %}, {% endif %}{% endfor %}
+                {% endif %}
+              </div>
+            {% endif %}
+          </div>
+          <div class="d-flex gap-2">
+            <form method="post" action="{{ url_for('main.daily_toggle', item_id=task.id) }}">
+              <button class="btn btn-sm {% if task.completed %}btn-success{% else %}btn-outline-secondary{% endif %}">
+                {% if task.completed %}Done{% else %}Toggle{% endif %}
+              </button>
+            </form>
+            <form method="post" action="{{ url_for('main.daily_delete', item_id=task.id) }}" onsubmit="return confirm('Delete this task?');">
+              <button class="btn btn-sm btn-outline-danger">Delete</button>
+            </form>
+          </div>
+        </div>
+      {% else %}
+        <p class="text-secondary mb-0">Nothing queued for today yet.</p>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const recurrenceType = document.getElementById('recurrenceType');
+  const intervalGroup = document.getElementById('intervalGroup');
+  const weeklyGroup = document.getElementById('weeklyGroup');
+  function syncRecurrenceVisibility() {
+    const value = recurrenceType.value;
+    intervalGroup.classList.toggle('d-none', value !== 'interval');
+    weeklyGroup.classList.toggle('d-none', value !== 'weekly');
+  }
+  recurrenceType?.addEventListener('change', syncRecurrenceVisibility);
+  syncRecurrenceVisibility();
+</script>
+{% endblock %}

@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Edit Course | GoalTracker{% endblock %}
+{% block content %}
+<div class="panel-card">
+  <p class="eyebrow mb-1">Course tracker</p>
+  <h1 class="display-6 fw-bold mb-4">Edit course</h1>
+  <form method="post" class="row g-3">
+    <div class="col-12">
+      <label class="form-label">Course name</label>
+      <input class="form-control" name="name" value="{{ course.name }}" required>
+    </div>
+    <div class="col-md-6">
+      <label class="form-label">Platform</label>
+      <input class="form-control" name="platform" value="{{ course.platform }}" required>
+    </div>
+    <div class="col-md-6">
+      <label class="form-label">Instructor</label>
+      <input class="form-control" name="instructor" value="{{ course.instructor }}">
+    </div>
+    <div class="col-12">
+      <label class="form-label">Course URL</label>
+      <input class="form-control" name="url" value="{{ course.url }}" required>
+    </div>
+    <div class="col-md-4">
+      <label class="form-label">Total lessons</label>
+      <input type="number" class="form-control" name="total_lessons" min="0" value="{{ course.total_lessons }}">
+    </div>
+    <div class="col-md-4">
+      <label class="form-label">Completed lessons</label>
+      <input type="number" class="form-control" name="completed_lessons" min="0" value="{{ course.completed_lessons }}">
+    </div>
+    <div class="col-md-4">
+      <label class="form-label">Linked skills</label>
+      <select class="form-select" name="skill_ids" multiple size="5">
+        {% for skill in goal.skills %}
+          <option value="{{ skill.id }}" {% if skill.id in selected_skill_ids %}selected{% endif %}>{{ skill.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-12">
+      <label class="form-label">Notes</label>
+      <textarea class="form-control" name="notes" rows="5">{{ course.notes }}</textarea>
+    </div>
+    <div class="col-12 d-flex justify-content-between">
+      <a class="btn btn-outline-secondary" href="{{ url_for('main.goal_detail', goal_id=goal.id) }}">Cancel</a>
+      <button class="btn btn-primary">Save course</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

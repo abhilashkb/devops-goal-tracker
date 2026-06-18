@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}{% if goal %}Edit Goal{% else %}New Goal{% endif %} | GoalTracker{% endblock %}
+{% block content %}
+<div class="panel-card">
+  <div class="mb-4">
+    <p class="eyebrow mb-1">{% if goal %}Edit interview goal{% else %}New interview goal{% endif %}</p>
+    <h1 class="display-6 fw-bold mb-0">{% if goal %}Refine your plan{% else %}Plan a target role{% endif %}</h1>
+  </div>
+  <form method="post">
+    <div class="row g-3">
+      <div class="col-lg-6">
+        <label class="form-label">Goal title</label>
+        <input class="form-control" name="title" value="{{ goal.title if goal else '' }}" required>
+      </div>
+      <div class="col-lg-6">
+        <label class="form-label">Company name</label>
+        <input class="form-control" name="company_name" value="{{ goal.company_name if goal else '' }}" required>
+      </div>
+      <div class="col-lg-6">
+        <label class="form-label">Job role</label>
+        <input class="form-control" name="role" value="{{ goal.role if goal else '' }}" required>
+      </div>
+      <div class="col-lg-3">
+        <label class="form-label">Interview date</label>
+        <input type="date" class="form-control" name="interview_date" value="{{ goal.interview_date if goal and goal.interview_date else '' }}">
+      </div>
+      <div class="col-lg-3">
+        <label class="form-label">Priority</label>
+        <select class="form-select" name="priority">
+          {% for n in range(1, 6) %}
+            <option value="{{ n }}" {% if goal and goal.priority == n or not goal and n == 2 %}selected{% endif %}>{{ n }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-lg-4">
+        <label class="form-label">Status</label>
+        <select class="form-select" name="status">
+          {% for status in ["Planned", "Preparing", "Completed", "On Hold"] %}
+            <option {% if goal and goal.status == status or not goal and status == "Planned" %}selected{% endif %}>{{ status }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-12">
+        <label class="form-label">Job description</label>
+        <textarea class="form-control" name="job_description" rows="7">{{ goal.job_description if goal else '' }}</textarea>
+      </div>
+      <div class="col-12">
+        <label class="form-label">Key responsibilities</label>
+        <textarea class="form-control" name="responsibilities" rows="4">{{ goal.responsibilities if goal else '' }}</textarea>
+      </div>
+      <div class="col-12">
+        <label class="form-label">Preferred qualifications</label>
+        <textarea class="form-control" name="preferred_qualifications" rows="4">{{ goal.preferred_qualifications if goal else '' }}</textarea>
+      </div>
+      <div class="col-12">
+        <label class="form-label">Company-specific notes</label>
+        <textarea class="form-control" name="company_notes" rows="4">{{ goal.company_notes if goal else '' }}</textarea>
+      </div>
+      <div class="col-12">
+        <label class="form-label">General notes</label>
+        <textarea class="form-control" name="notes" rows="4">{{ goal.notes if goal else '' }}</textarea>
+      </div>
+    </div>
+    <div class="d-flex justify-content-between align-items-center mt-4">
+      <a class="btn btn-outline-secondary" href="{{ url_for('main.goals') }}">Cancel</a>
+      <button class="btn btn-primary">{% if goal %}Save changes{% else %}Create goal{% endif %}</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

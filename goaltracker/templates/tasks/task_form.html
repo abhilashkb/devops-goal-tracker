@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Add Task | GoalTracker{% endblock %}
+{% block content %}
+<div class="panel-card">
+  <p class="eyebrow mb-1">Preparation task</p>
+  <h1 class="display-6 fw-bold mb-4">{% if goal %}Add task for {{ goal.title }}{% else %}Add project task{% endif %}</h1>
+  <form method="post" class="row g-3">
+    <div class="col-12">
+      <div class="alert alert-info mb-0">
+        {% if goal %}
+          This task will be saved under {{ goal.title }}.
+        {% else %}
+          Create a project first, then add a task.
+        {% endif %}
+      </div>
+    </div>
+    <div class="col-12">
+      <label class="form-label">Task title</label>
+      <input class="form-control" name="title" placeholder="Review Kubernetes networking" required>
+    </div>
+    <div class="col-md-4">
+      <label class="form-label">Due date</label>
+      <input type="date" class="form-control" name="due_date">
+    </div>
+    <div class="col-md-4">
+      <label class="form-label">Priority</label>
+      <select class="form-select" name="priority">
+        <option value="1">P1</option>
+        <option value="2" selected>P2</option>
+        <option value="3">P3</option>
+        <option value="4">P4</option>
+        <option value="5">P5</option>
+      </select>
+    </div>
+    <div class="col-12 d-flex justify-content-between">
+      <a class="btn btn-outline-secondary" href="{% if goal %}{{ url_for('main.goal_detail', goal_id=goal.id) }}{% else %}{{ url_for('main.project_tasks') }}{% endif %}">Cancel</a>
+      <button class="btn btn-primary" {% if not goal %}disabled{% endif %}>Create task</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Edit Task | GoalTracker{% endblock %}
+{% block content %}
+<div class="panel-card">
+  <p class="eyebrow mb-1">Preparation task</p>
+  <h1 class="display-6 fw-bold mb-4">Edit task</h1>
+  <form method="post" class="row g-3">
+    <div class="col-12">
+      <label class="form-label">Title</label>
+      <input class="form-control" name="title" value="{{ task.title }}" required>
+    </div>
+    <div class="col-md-4">
+      <label class="form-label">Due date</label>
+      <input type="date" class="form-control" name="due_date" value="{{ task.due_date.isoformat() if task.due_date else '' }}">
+    </div>
+    <div class="col-md-4">
+      <label class="form-label">Priority</label>
+      <select class="form-select" name="priority">
+        {% for n in range(1, 6) %}
+          <option value="{{ n }}" {% if task.priority == n %}selected{% endif %}>{{ n }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-4 d-flex align-items-end">
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" id="completed" name="completed" {% if task.completed %}checked{% endif %}>
+        <label class="form-check-label" for="completed">Completed</label>
+      </div>
+    </div>
+    <div class="col-12 d-flex justify-content-between">
+      <a class="btn btn-outline-secondary" href="{{ url_for('main.goal_detail', goal_id=goal.id) }}">Cancel</a>
+      <button class="btn btn-primary">Save task</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

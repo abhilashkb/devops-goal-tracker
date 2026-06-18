@@ -1,0 +1,220 @@
+{% extends "base.html" %}
+{% block title %}Skills | GoalTracker{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-end gap-3 mb-4">
+  <div>
+    <p class="eyebrow mb-1">Skills</p>
+    <h1 class="display-6 fw-bold mb-0">Edit skills at a glance</h1>
+    <p class="text-secondary mb-0">Review strong areas and update skills that still need practice.</p>
+  </div>
+  <a class="btn btn-outline-secondary" href="{{ url_for('main.dashboard') }}">Back to dashboard</a>
+</div>
+
+<!-- Add skill form -->
+<div class="mb-4">
+  <form method="post" action="{{ url_for('main.skills_create') }}" class="row g-2 align-items-end">
+    <div class="col-md-4">
+      <label class="form-label small text-secondary">Goal</label>
+      <select name="goal_id" class="form-select">
+        {% for goal in goals %}
+          <option value="{{ goal.id }}">{{ goal.title }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-3">
+      <label class="form-label small text-secondary">Skill name</label>
+      <input name="name" class="form-control" placeholder="New skill">
+    </div>
+    <div class="col-md-2">
+      <label class="form-label small text-secondary">Confidence</label>
+      <input type="number" name="confidence_level" class="form-control" min="1" max="5" value="2">
+    </div>
+    <div class="col-md-2">
+      <label class="form-label small text-secondary">Status</label>
+      <select name="status" class="form-select">
+        {% for status in ["Not Started", "Learning", "Practicing", "Ready"] %}
+          <option>{{ status }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-1">
+      <button class="btn btn-primary">Add</button>
+    </div>
+  </form>
+</div>
+
+<!-- Metrics -->
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <div class="metric-card">
+      <div class="metric-label">Total skills</div>
+      <div class="metric-value">{{ skills|length }}</div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="metric-card">
+      <div class="metric-label">Strong skills</div>
+      <div class="metric-value">{{ strong_skills|length }}</div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="metric-card">
+      <div class="metric-label">Need practice</div>
+      <div class="metric-value">{{ weak_skills|length }}</div>
+    </div>
+  </div>
+</div>
+
+<!-- Two-column lists -->
+<div class="row g-4">
+  <div class="col-lg-6">
+    <div class="panel-card h-100">
+      <h2 class="h4 mb-3">Strong skills</h2>
+      {% for skill in strong_skills %}
+        <div class="detail-box">
+          <form method="post" action="{{ url_for('main.skill_edit', goal_id=skill.goal.id, skill_id=skill.id) }}" class="row g-2 skill-form" data-skill-id="{{ skill.id }}">
+            <div class="col-12">
+              <label class="form-label small text-secondary">Skill</label>
+              <input class="form-control" name="name" value="{{ skill.name }}">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small text-secondary">Confidence</label>
+              <input type="number" class="form-control" name="confidence_level" min="1" max="5" value="{{ skill.confidence_level }}">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small text-secondary">Status</label>
+              <select class="form-select" name="status">
+                {% for status in ["Not Started", "Learning", "Practicing", "Ready"] %}
+                  <option {% if skill.status == status %}selected{% endif %}>{{ status }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-4 d-flex align-items-end">
+              <div class="text-end small text-secondary w-100">{{ skill_readiness(skill) }}%</div>
+            </div>
+            <div class="col-12">
+              <textarea class="form-control" name="notes" rows="3" placeholder="Notes">{{ skill.notes }}</textarea>
+            </div>
+            <div class="col-12">
+              <input class="form-control" name="resource_url" value="{{ skill.resource_url }}" placeholder="Linked resource">
+            </div>
+            <div class="col-12 d-flex justify-content-between">
+              <a class="small" href="{{ url_for('main.goal_detail', goal_id=skill.goal.id) }}">{{ skill.goal.title }}</a>
+              <div class="d-flex gap-2">
+                <button class="btn btn-sm btn-primary">Save</button>
+                <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('main.skill_edit', goal_id=skill.goal.id, skill_id=skill.id) }}">Edit</a>
+                <button class="btn btn-sm btn-outline-danger" formaction="{{ url_for('main.skill_delete', skill_id=skill.id) }}" formmethod="post">Delete</button>
+              </div>
+            </div>
+          </form>
+        </div>
+      {% else %}
+        <p class="text-secondary mb-0">No strong skills yet.</p>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="col-lg-6">
+    <div class="panel-card h-100">
+      <h2 class="h4 mb-3">Skills needing practice</h2>
+      {% for skill in weak_skills %}
+        <div class="detail-box">
+          <form method="post" action="{{ url_for('main.skill_edit', goal_id=skill.goal.id, skill_id=skill.id) }}" class="row g-2 skill-form" data-skill-id="{{ skill.id }}">
+            <div class="col-12">
+              <label class="form-label small text-secondary">Skill</label>
+              <input class="form-control" name="name" value="{{ skill.name }}">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small text-secondary">Confidence</label>
+              <input type="number" class="form-control" name="confidence_level" min="1" max="5" value="{{ skill.confidence_level }}">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small text-secondary">Status</label>
+              <select class="form-select" name="status">
+                {% for status in ["Not Started", "Learning", "Practicing", "Ready"] %}
+                  <option {% if skill.status == status %}selected{% endif %}>{{ status }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-4 d-flex align-items-end">
+              <div class="text-end small text-secondary w-100">{{ skill_readiness(skill) }}%</div>
+            </div>
+            <div class="col-12">
+              <textarea class="form-control" name="notes" rows="3" placeholder="Notes">{{ skill.notes }}</textarea>
+            </div>
+            <div class="col-12">
+              <input class="form-control" name="resource_url" value="{{ skill.resource_url }}" placeholder="Linked resource">
+            </div>
+            <div class="col-12 d-flex justify-content-between">
+              <a class="small" href="{{ url_for('main.goal_detail', goal_id=skill.goal.id) }}">{{ skill.goal.title }}</a>
+              <div class="d-flex gap-2">
+                <button class="btn btn-sm btn-primary">Save</button>
+                <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('main.skill_edit', goal_id=skill.goal.id, skill_id=skill.id) }}">Edit</a>
+                <button class="btn btn-sm btn-outline-danger" formaction="{{ url_for('main.skill_delete', skill_id=skill.id) }}" formmethod="post">Delete</button>
+              </div>
+            </div>
+          </form>
+        </div>
+      {% else %}
+        <p class="text-secondary mb-0">No skills need attention right now.</p>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<!-- All skills panel -->
+<div class="row g-4 mt-4">
+  <div class="col-12">
+    <div class="panel-card">
+      <h2 class="h5 mb-3">All skills</h2>
+      {% if skills %}
+        <div class="d-grid gap-3">
+          {% for skill in skills %}
+            <div class="detail-box">
+              <form method="post" action="{{ url_for('main.skill_edit', goal_id=skill.goal.id, skill_id=skill.id) }}" class="row g-2 skill-form" data-skill-id="{{ skill.id }}">
+                <div class="col-md-4">
+                  <label class="form-label small text-secondary">Skill</label>
+                  <input class="form-control" name="name" value="{{ skill.name }}">
+                </div>
+                <div class="col-md-2">
+                  <label class="form-label small text-secondary">Confidence</label>
+                  <input type="number" class="form-control" name="confidence_level" min="1" max="5" value="{{ skill.confidence_level }}">
+                </div>
+                <div class="col-md-3">
+                  <label class="form-label small text-secondary">Status</label>
+                  <select class="form-select" name="status">
+                    {% for status in ["Not Started", "Learning", "Practicing", "Ready"] %}
+                      <option {% if skill.status == status %}selected{% endif %}>{{ status }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                  <div class="text-end small text-secondary w-100 skill-readiness">{{ skill_readiness(skill) }}%</div>
+                </div>
+                <div class="col-12">
+                  <textarea class="form-control" name="notes" rows="2" placeholder="Notes">{{ skill.notes }}</textarea>
+                </div>
+                <div class="col-12 d-flex justify-content-between">
+                  <a class="small" href="{{ url_for('main.goal_detail', goal_id=skill.goal.id) }}">{{ skill.goal.title }}</a>
+                  <div class="d-flex gap-2">
+                    <button class="btn btn-sm btn-primary">Save</button>
+                    <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('main.skill_edit', goal_id=skill.goal.id, skill_id=skill.id) }}">Edit</a>
+                    <button class="btn btn-sm btn-outline-danger" formaction="{{ url_for('main.skill_delete', skill_id=skill.id) }}" formmethod="post">Delete</button>
+                  </div>
+                </div>
+              </form>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="text-secondary mb-0">No skills yet. Add some from a goal page.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+{% block scripts %}
+  <script src="{{ url_for('static', filename='js/skills_inline.js') }}"></script>
+{% endblock %}
+
+{% endblock %}

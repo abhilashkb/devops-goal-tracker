@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}New Project | GoalTracker{% endblock %}
+{% block content %}
+<div class="panel-card">
+  <p class="eyebrow mb-1">Projects</p>
+  <h1 class="display-6 fw-bold mb-4">Create a standalone project</h1>
+  <form method="post" class="row g-3">
+    <div class="col-12">
+      <label class="form-label">Project title</label>
+      <input class="form-control" name="title" required>
+    </div>
+    <div class="col-12">
+      <label class="form-label">Description</label>
+      <textarea class="form-control" name="description" rows="5"></textarea>
+    </div>
+    <div class="col-md-4">
+      <label class="form-label">Priority</label>
+      <select class="form-select" name="priority">
+        <option value="1">1 - High</option>
+        <option value="2" selected>2 - Medium</option>
+        <option value="3">3 - Low</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+      </select>
+    </div>
+    <div class="col-md-4">
+      <label class="form-label">Status</label>
+      <select class="form-select" name="status">
+        <option>Active</option>
+        <option>On Hold</option>
+        <option>Completed</option>
+      </select>
+    </div>
+    <div class="col-12 d-flex justify-content-between">
+      <a class="btn btn-outline-secondary" href="{{ url_for('main.projects') }}">Cancel</a>
+      <button class="btn btn-primary">Create project</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

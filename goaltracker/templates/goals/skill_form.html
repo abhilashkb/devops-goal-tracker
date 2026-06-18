@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Edit Skill | GoalTracker{% endblock %}
+{% block content %}
+<div class="panel-card">
+  <p class="eyebrow mb-1">Skill tracker</p>
+  <h1 class="display-6 fw-bold mb-4">Edit skill</h1>
+  <form method="post" class="row g-3">
+    <div class="col-12">
+      <label class="form-label">Skill name</label>
+      <input class="form-control" name="name" value="{{ skill.name }}" required>
+    </div>
+    <div class="col-md-4">
+      <label class="form-label">Confidence level</label>
+      <select class="form-select" name="confidence_level">
+        {% for n in range(1, 6) %}
+          <option value="{{ n }}" {% if skill.confidence_level == n %}selected{% endif %}>{{ n }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-4">
+      <label class="form-label">Status</label>
+      <select class="form-select" name="status">
+        {% for status in ["Not Started", "Learning", "Practicing", "Ready"] %}
+          <option {% if skill.status == status %}selected{% endif %}>{{ status }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-12">
+      <label class="form-label">Resource URL</label>
+      <input class="form-control" name="resource_url" value="{{ skill.resource_url }}">
+    </div>
+    <div class="col-12">
+      <label class="form-label">Notes</label>
+      <textarea class="form-control" name="notes" rows="5">{{ skill.notes }}</textarea>
+    </div>
+    <div class="col-12 d-flex justify-content-between">
+      <a class="btn btn-outline-secondary" href="{{ url_for('main.goal_detail', goal_id=goal.id) }}">Cancel</a>
+      <button class="btn btn-primary">Save skill</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

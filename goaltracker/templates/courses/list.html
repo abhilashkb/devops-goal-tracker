@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% block title %}Courses | GoalTracker{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-end gap-3 mb-4">
+  <div>
+    <p class="eyebrow mb-1">Course tracker</p>
+    <h1 class="display-6 fw-bold mb-0">All courses</h1>
+    <p class="text-secondary mb-0">Quick access to every course in your personal learning plan.</p>
+  </div>
+  <div class="d-flex gap-2">
+    <a class="btn btn-primary" href="{{ url_for('main.course_create') }}">Add course</a>
+    <a class="btn btn-outline-secondary" href="{{ url_for('main.goals') }}">Back to goals</a>
+  </div>
+</div>
+
+<div class="row g-4">
+  {% for course in courses %}
+    <div class="col-lg-6 col-xxl-4">
+      <div class="panel-card h-100">
+          <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+            <div>
+              <h2 class="h4 mb-1">{{ course.name }}</h2>
+              <div class="text-secondary small">{{ course.platform }}{% if course.instructor %} · {{ course.instructor }}{% endif %}</div>
+            </div>
+          <span class="badge text-bg-dark">{{ course.goal.title }}</span>
+          </div>
+
+        <div class="mb-2 small text-secondary">Progress</div>
+        <div class="progress">
+          <div class="progress-bar" style="width: {{ course_progress(course) }}%"></div>
+        </div>
+        <div class="d-flex justify-content-between mt-2 small text-secondary">
+          <span>{{ course.completed_lessons }}/{{ course.total_lessons }} lessons</span>
+          <span>{{ course_progress(course) }}%</span>
+        </div>
+
+        {% if course.notes %}
+          <p class="text-secondary mt-3 mb-0">{{ course.notes }}</p>
+        {% endif %}
+
+        <div class="chapter-panel mt-4">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3 class="h6 text-uppercase text-secondary mb-0">Chapters</h3>
+          </div>
+          <form method="post" action="{{ url_for('main.course_chapter_new', course_id=course.id) }}" class="row g-2 mb-3">
+            <div class="col-12">
+              <input class="form-control form-control-sm" name="title" placeholder="Chapter title">
+            </div>
+            <div class="col-4">
+              <input type="number" class="form-control form-control-sm" name="progress" min="0" max="100" value="0" placeholder="Progress">
+            </div>
+            <div class="col-8">
+              <input class="form-control form-control-sm" name="google_doc_url" placeholder="Google Docs link">
+            </div>
+            <div class="col-12">
+              <input class="form-control form-control-sm" name="external_url" placeholder="External reference URL">
+            </div>
+            <div class="col-12 d-grid">
+              <button class="btn btn-outline-primary btn-sm">Add chapter</button>
+            </div>
+          </form>
+          {% for chapter in course.chapters %}
+            <div class="detail-box">
+              <div class="d-flex justify-content-between align-items-start gap-3">
+                <div class="flex-grow-1">
+                  <input class="form-control form-control-sm mb-2" form="course-chapter-{{ chapter.id }}" name="title" value="{{ chapter.title }}">
+                  <div class="d-flex gap-2">
+                    <input class="form-control form-control-sm" form="course-chapter-{{ chapter.id }}" type="number" name="progress" min="0" max="100" value="{{ chapter.progress }}" style="max-width: 110px;">
+                    <div class="form-check form-switch d-flex align-items-center">
+                      <input class="form-check-input" form="course-chapter-{{ chapter.id }}" type="checkbox" role="switch" name="completed" {% if chapter.completed %}checked{% endif %}>
+                      <label class="form-check-label ms-2 small" for="">Done</label>
+                    </div>
+                    <input class="form-control form-control-sm" form="course-chapter-{{ chapter.id }}" name="google_doc_url" value="{{ chapter.google_doc_url }}" placeholder="Google Docs link">
+                  </div>
+                  <input class="form-control form-control-sm mt-2" form="course-chapter-{{ chapter.id }}" name="external_url" value="{{ chapter.external_url }}" placeholder="External reference URL">
+                </div>
+                <form id="course-chapter-{{ chapter.id }}" method="post" action="{{ url_for('main.chapter_edit', chapter_id=chapter.id) }}" class="d-flex flex-column gap-2">
+                  <button class="btn btn-sm btn-primary">Save</button>
+                  <button class="btn btn-sm btn-outline-secondary" formaction="{{ url_for('main.chapter_toggle', chapter_id=chapter.id) }}" formmethod="post">{{ "Mark incomplete" if chapter.completed else "Mark complete" }}</button>
+                  <button class="btn btn-sm btn-outline-danger" formaction="{{ url_for('main.chapter_delete', chapter_id=chapter.id) }}" formmethod="post">Delete</button>
+                </form>
+              </div>
+              {% if chapter.google_doc_url %}
+                <a class="small d-inline-block mt-2 me-3" href="{{ chapter.google_doc_url }}" target="_blank" rel="noreferrer">Google Doc</a>
+              {% endif %}
+              {% if chapter.external_url %}
+                <a class="small d-inline-block mt-2" href="{{ chapter.external_url }}" target="_blank" rel="noreferrer">External link</a>
+              {% endif %}
+            </div>
+          {% else %}
+            <p class="text-secondary mb-0">Add chapter-by-chapter progress, links, and references here.</p>
+          {% endfor %}
+        </div>
+
+        <div class="d-flex flex-wrap gap-2 mt-3">
+          <a class="btn btn-dark btn-sm" href="{{ course.url }}" target="_blank" rel="noreferrer">Open course</a>
+          <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('main.course_edit', goal_id=course.goal.id, course_id=course.id) }}">Edit</a>
+          <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('main.goal_detail', goal_id=course.goal.id) }}">Open goal</a>
+        </div>
+
+        {% if course.skills %}
+          <div class="mt-3 chip-wrap">
+            {% for skill in course.skills %}
+              <span class="skill-chip weak">{{ skill.name }}</span>
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  {% else %}
+    <div class="col-12">
+      <div class="panel-card text-center py-5">
+        <h2 class="h4">No courses yet</h2>
+        <p class="text-secondary mb-3">Add a course from a goal page and it will appear here automatically.</p>
+        <a class="btn btn-primary" href="{{ url_for('main.goals') }}">Go to goals</a>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+{% endblock %}

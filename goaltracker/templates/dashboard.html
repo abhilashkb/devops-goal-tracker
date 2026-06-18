@@ -1,0 +1,249 @@
+{% extends "base.html" %}
+{% block title %}Dashboard | GoalTracker{% endblock %}
+{% block content %}
+<section class="hero-card mb-4">
+  <div class="d-flex flex-column flex-lg-row justify-content-between gap-4 align-items-lg-end">
+    <div>
+      <p class="eyebrow">DevOps interview prep</p>
+      <h1 class="display-5 fw-bold mb-2">Stay focused on the next interview, not the noise.</h1>
+      <p class="lead text-secondary mb-0">One dashboard for goals, skills, tasks, courses, and the job descriptions behind them.</p>
+    </div>
+    <div class="d-flex gap-2 hero-actions">
+      <a class="btn hero-btn-blue btn-lg" href="{{ url_for('main.goal_new') }}">New interview goal</a>
+      <a class="btn hero-btn-green btn-lg" href="{{ url_for('main.daily') }}">Today's plan</a>
+      <a class="btn hero-btn-purple btn-lg" href="{{ url_for('main.skills') }}">Skills</a>
+      <a class="btn hero-btn-orange btn-lg" href="{{ url_for('main.courses') }}">Courses</a>
+      <a class="btn hero-btn-teal btn-lg" href="{{ url_for('main.project_tasks') }}">Project tasks</a>
+    </div>
+  </div>
+</section>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-6 col-xl-3">
+    <div class="metric-card">
+      <div class="metric-label">Active goals</div>
+      <div class="metric-value">{{ dashboard_stats.goals }}</div>
+    </div>
+  </div>
+  <div class="col-md-6 col-xl-3">
+    <div class="metric-card">
+      <div class="metric-label">Pending daily tasks</div>
+      <div class="metric-value">{{ dashboard_stats.pending_tasks }}</div>
+    </div>
+  </div>
+  <div class="col-md-6 col-xl-3">
+    <div class="metric-card">
+      <div class="metric-label">Active courses</div>
+      <div class="metric-value">{{ dashboard_stats.courses }}</div>
+    </div>
+  </div>
+  <div class="col-md-6 col-xl-3">
+    <div class="metric-card">
+      <div class="metric-label">Skills needing attention</div>
+      <div class="metric-value">{{ dashboard_stats.weak_skills }}</div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4 mb-4">
+  <div class="col-lg-8">
+    <div class="panel-card h-100">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="h4 mb-0">Progress overview</h2>
+        <span class="text-secondary small">Latest tracked goals, tasks, and courses</span>
+      </div>
+      <div class="overview-summary mb-4">
+        <div class="overview-block">
+          <div class="overview-block-header">
+            <h3 class="h6 text-uppercase text-secondary mb-0">Goal completion</h3>
+            <span class="text-secondary small">Tracked by goal</span>
+          </div>
+          {% for item in goal_metrics %}
+            <div class="overview-item">
+              <div class="d-flex justify-content-between small mb-1">
+                <span>{{ item.label }}</span>
+                <span>{{ item.progress }}%</span>
+              </div>
+              <div class="overview-track">
+                <div class="overview-fill" style="width: {{ item.progress }}%"></div>
+              </div>
+            </div>
+          {% else %}
+            <p class="text-secondary mb-0">Add a goal to start tracking progress.</p>
+          {% endfor %}
+        </div>
+        <div class="overview-block">
+          <div class="overview-block-header">
+            <h3 class="h6 text-uppercase text-secondary mb-0">Task completion</h3>
+            <span class="text-secondary small">Tracked by goal</span>
+          </div>
+          {% for item in task_metrics %}
+            <div class="overview-item">
+              <div class="d-flex justify-content-between small mb-1">
+                <span>{{ item.label }}</span>
+                <span>{{ item.progress }}%</span>
+              </div>
+              <div class="overview-track">
+                <div class="overview-fill" style="width: {{ item.progress }}%"></div>
+              </div>
+            </div>
+          {% else %}
+            <p class="text-secondary mb-0">Add preparation tasks to see task completion here.</p>
+          {% endfor %}
+        </div>
+        <div class="overview-block">
+          <div class="overview-block-header">
+            <h3 class="h6 text-uppercase text-secondary mb-0">Course progress</h3>
+            <span class="text-secondary small">Tracked by course</span>
+          </div>
+          {% for item in course_metrics %}
+            <div class="overview-item">
+              <div class="d-flex justify-content-between small mb-1">
+                <span>{{ item.label }}</span>
+                <span>{{ item.progress }}%</span>
+              </div>
+              <div class="overview-track">
+                <div class="overview-fill" style="width: {{ item.progress }}%"></div>
+              </div>
+            </div>
+          {% else %}
+            <p class="text-secondary mb-0">Add a course to show study progress here.</p>
+          {% endfor %}
+        </div>
+      </div>
+  <!-- Charts removed: progress overview uses compact inline bars above -->
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="panel-card h-100">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="h4 mb-0">Skills at a glance</h2>
+        <a class="small" href="{{ url_for('main.skills') }}">Edit skills</a>
+      </div>
+      <div class="mb-4">
+        <p class="text-secondary small text-uppercase mb-2">Strong</p>
+        <div class="chip-wrap">
+          {% for skill in strong_skills %}
+            <span class="skill-chip strong">{{ skill.name }}</span>
+          {% else %}
+            <span class="text-secondary">No strong skills logged yet.</span>
+          {% endfor %}
+        </div>
+      </div>
+      <div>
+        <p class="text-secondary small text-uppercase mb-2">Need practice</p>
+        <div class="chip-wrap">
+          {% for skill in weak_skills %}
+            <span class="skill-chip weak">{{ skill.name }}</span>
+          {% else %}
+            <span class="text-secondary">Nothing urgent right now.</span>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4 mb-4">
+  <div class="col-lg-6">
+    <div class="panel-card h-100">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="h4 mb-0">Today's tasks</h2>
+        <a href="{{ url_for('main.daily') }}" class="small">Open daily board</a>
+      </div>
+      {% for task in daily_tasks[:6] %}
+        <div class="item-row {% if task.completed %}is-complete{% endif %}">
+          <div>
+            <div class="fw-semibold">{{ task.title }}</div>
+            <div class="small text-secondary">Priority {{ task.priority }}{% if task.due_date %} · Due {{ task.due_date.strftime('%b %d') }}{% endif %}</div>
+          </div>
+          <form method="post" action="{{ url_for('main.daily_toggle', item_id=task.id) }}">
+            <button class="btn btn-sm {% if task.completed %}btn-success{% else %}btn-outline-secondary{% endif %}">
+              {% if task.completed %}Done{% else %}Mark done{% endif %}
+            </button>
+          </form>
+        </div>
+      {% else %}
+        <p class="text-secondary mb-0">No daily tasks yet. Add one to keep momentum.</p>
+      {% endfor %}
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="panel-card h-100">
+      <h2 class="h4">Upcoming deadlines</h2>
+      {% for task in upcoming_tasks %}
+        <div class="item-row">
+          <div>
+            <div class="fw-semibold">{{ task.title }}</div>
+            <div class="small text-secondary">{{ task.goal.title }} · {{ task.due_date.strftime('%b %d, %Y') }}</div>
+          </div>
+        </div>
+      {% else %}
+        <p class="text-secondary mb-0">No upcoming prep deadlines right now.</p>
+      {% endfor %}
+      <hr>
+      {% for goal in upcoming_interviews[:4] %}
+        <div class="item-row">
+          <div>
+            <div class="fw-semibold">{{ goal.title }}</div>
+            <div class="small text-secondary">{{ goal.company_name }} · {{ goal.interview_date.strftime('%b %d, %Y') }}</div>
+          </div>
+        </div>
+      {% else %}
+        <p class="text-secondary mb-0">No interview dates have been added yet.</p>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-7">
+    <div class="panel-card h-100">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="h4 mb-0">Active interview goals</h2>
+        <a href="{{ url_for('main.goals') }}" class="small">View all</a>
+      </div>
+      {% for goal in goals[:5] %}
+        <a class="goal-list-item" href="{{ url_for('main.goal_detail', goal_id=goal.id) }}">
+          <div>
+            <div class="fw-semibold">{{ goal.title }}</div>
+            <div class="small text-secondary">{{ goal.company_name }} · {{ goal.role }}</div>
+          </div>
+          <div class="text-end">
+            <div class="small text-secondary">{{ goal.status }}</div>
+            <div class="progress-mini">
+              <div class="progress-mini-bar" style="width: {{ goal_progress(goal) }}%"></div>
+            </div>
+          </div>
+        </a>
+      {% else %}
+        <p class="text-secondary mb-0">Start by creating your first interview goal.</p>
+      {% endfor %}
+    </div>
+  </div>
+  <div class="col-lg-5">
+    <div class="panel-card h-100">
+      <h2 class="h4">Recent activity</h2>
+      {% for activity in activities %}
+        <div class="item-row">
+          <div>
+            <div class="fw-semibold">{{ activity.message }}</div>
+            <div class="small text-secondary">{{ activity.created_at.strftime('%b %d, %H:%M') }}</div>
+          </div>
+        </div>
+      {% else %}
+        <p class="text-secondary mb-0">Your activity feed will appear here once you start working.</p>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  window.goalMetrics = {{ goal_metrics|tojson }};
+  window.taskMetrics = {{ task_metrics|tojson }};
+  window.courseMetrics = {{ course_metrics|tojson }};
+</script>
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}
