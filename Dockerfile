@@ -1,34 +1,46 @@
-FROM python:3.11-slim
-
-# Set a working directory
+### Multi-stage Dockerfile
+### Builder: install build deps and dependencies into a venv
+FROM python:3.11-slim AS builder
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
 WORKDIR /app
 
-# Environment: prevent Python from writing .pyc files and buffering stdout
+# Install system build dependencies (only in builder)
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends build-essential gcc libpq-dev \
+ && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements and install into an isolated venv
+COPY requirements.txt ./
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+RUN pip install --upgrade pip setuptools wheel \
+ && pip install --no-cache-dir -r requirements.txt
+
+# Copy the full application into the builder (so bytecode can be generated if needed)
+COPY . /app
+
+### Final image: copy the venv and app files only, keep image small
+FROM python:3.11-slim
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     FLASK_APP=run.py \
     FLASK_ENV=production
+WORKDIR /app
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    libpq-dev \
-    gcc \
- && rm -rf /var/lib/apt/lists/*
-
-# Copy only requirements first for better caching
-COPY requirements.txt /app/
-RUN pip install --no-cache-dir -r requirements.txt
+# Copy runtime virtualenv from builder
+COPY --from=builder /opt/venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
 
 # Copy application code
-COPY . /app
+COPY --from=builder /app /app
 
-# Create an unprivileged user
-RUN useradd --create-home appuser && chown -R appuser /app
+# Create an unprivileged user and set ownership
+RUN useradd --create-home appuser \
+ && chown -R appuser /app /opt/venv
 USER appuser
 
-# Expose the port
 EXPOSE 5000
 
-# Use gunicorn for production; bind to all interfaces
+# Run with gunicorn
 CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:5000", "run:app"]
