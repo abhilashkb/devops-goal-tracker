@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Quotes | GoalTracker{% endblock %}
+{% block content %}
+<div class="panel-card">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="h4 mb-0">Quotes</h2>
+    <a href="{{ url_for('main.dashboard') }}" class="small">Back</a>
+  </div>
+  <form method="post" action="{{ url_for('main.quotes_new') }}" class="mb-3">
+    <div class="mb-2">
+      <label class="form-label">Quote text</label>
+      <textarea class="form-control" name="text" rows="2" required></textarea>
+    </div>
+    <div class="mb-2">
+      <label class="form-label">Author (optional)</label>
+      <input class="form-control" name="author">
+    </div>
+    <button class="btn btn-primary">Add quote</button>
+  </form>
+
+  <div>
+    {% for q in quotes %}
+      <div class="item-row">
+        <div>
+          <div class="fw-semibold">{{ q.text }}</div>
+          {% if q.author %}<div class="small text-secondary">— {{ q.author }}</div>{% endif %}
+        </div>
+        <form method="post" action="{{ url_for('main.quotes_delete', quote_id=q.id) }}" onsubmit="return confirm('Remove this quote?');">
+          <button class="btn btn-sm btn-outline-danger">Remove</button>
+        </form>
+      </div>
+    {% else %}
+      <p class="text-secondary">No quotes yet. Add one above.</p>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

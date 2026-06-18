@@ -150,3 +150,10 @@ class Activity(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
     goal = db.relationship("InterviewGoal")
+
+
+class Quote(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    text = db.Column(db.Text, nullable=False)
+    author = db.Column(db.String(120), default="", nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)

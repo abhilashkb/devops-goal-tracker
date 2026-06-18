@@ -22,6 +22,7 @@
           <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-2">
             {% if current_user.is_authenticated %}
             <li class="nav-item"><a class="nav-link" href="{{ url_for('main.goals') }}">Goals</a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('main.quotes_list') }}">Quotes</a></li>
             <li class="nav-item"><a class="nav-link" href="{{ url_for('main.skills') }}">Skills</a></li>
             <li class="nav-item"><a class="nav-link" href="{{ url_for('main.courses') }}">Courses</a></li>
             <li class="nav-item"><a class="nav-link" href="{{ url_for('main.project_tasks') }}">Projects</a></li>

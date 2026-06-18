@@ -1,11 +1,43 @@
 {% extends "base.html" %}
 {% block title %}Dashboard | GoalTracker{% endblock %}
 {% block content %}
+<section class="quotes-hero mb-4">
+  <div class="panel-bg">
+    {% if quotes and quotes|length > 0 %}
+      <div id="quotesCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="5000">
+        <div class="carousel-inner">
+          {% for quote in quotes %}
+            <div class="carousel-item {% if loop.first %}active{% endif %}">
+              <div class="quote-card p-4 text-center mx-auto" style="max-width:900px;">
+                <blockquote class="mb-2">“{{ quote.text }}”</blockquote>
+                {% if quote.author %}
+                  <div class="small text-secondary">— {{ quote.author }}</div>
+                {% endif %}
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+        <button class="carousel-control-prev" type="button" data-bs-target="#quotesCarousel" data-bs-slide="prev">
+          <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+          <span class="visually-hidden">Previous</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#quotesCarousel" data-bs-slide="next">
+          <span class="carousel-control-next-icon" aria-hidden="true"></span>
+          <span class="visually-hidden">Next</span>
+        </button>
+      </div>
+    {% else %}
+      <div class="panel-card mx-auto" style="max-width:900px; text-align:center;">No quotes yet. <a href="{{ url_for('main.quotes_list') }}">Add some</a></div>
+    {% endif %}
+  </div>
+</section>
 <section class="hero-card mb-4">
   <div class="d-flex flex-column flex-lg-row justify-content-between gap-4 align-items-lg-end">
     <div>
-      <p class="eyebrow">DevOps interview prep</p>
+  <p class="eyebrow">Interview preparation</p>
       <h1 class="display-5 fw-bold mb-2">Stay focused on the next interview, not the noise.</h1>
+  <!-- quotes removed from inline hero — top full-width carousel is used instead -->
+
       <p class="lead text-secondary mb-0">One dashboard for goals, skills, tasks, courses, and the job descriptions behind them.</p>
     </div>
     <div class="d-flex gap-2 hero-actions">

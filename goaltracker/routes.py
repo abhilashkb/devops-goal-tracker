@@ -5,7 +5,7 @@ from flask_login import current_user, login_required, login_user, logout_user
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from . import db
-from .models import Activity, Chapter, Course, DailyTask, GoalTask, InterviewGoal, Project, ProjectSubTask, Skill, User
+from .models import Activity, Chapter, Course, DailyTask, GoalTask, InterviewGoal, Project, ProjectSubTask, Skill, User, Quote
 from .utils import (
     auto_detect_skills,
     course_progress,
@@ -110,6 +110,9 @@ def dashboard():
         "weak_skills": len(weak_skills),
     }
 
+    # load a small set of quotes for the dashboard slider
+    quotes = Quote.query.order_by(Quote.created_at.desc()).limit(8).all()
+
     return render_template(
         "dashboard.html",
         goals=goals,
@@ -126,6 +129,7 @@ def dashboard():
         dashboard_stats=dashboard_stats,
         today=date.today(),
         goal_progress=goal_progress,
+    quotes=quotes,
     )
 
 
@@ -231,6 +235,40 @@ def skills():
         skill_readiness=skill_readiness,
         derive_skill_status=derive_skill_status,
     )
+
+
+@bp.route('/quotes')
+@login_required
+def quotes_list():
+    items = Quote.query.order_by(Quote.created_at.desc()).all()
+    return render_template('quotes/list.html', quotes=items)
+
+
+@bp.route('/quotes/new', methods=['GET', 'POST'])
+@login_required
+def quotes_new():
+    if request.method == 'POST':
+        text = request.form.get('text', '').strip()
+        author = request.form.get('author', '').strip()
+        if not text:
+            flash('Quote text cannot be empty.', 'danger')
+            return redirect(url_for('main.quotes_new'))
+        q = Quote(text=text, author=author)
+        db.session.add(q)
+        db.session.commit()
+        flash('Quote added.', 'success')
+        return redirect(url_for('main.quotes_list'))
+    return render_template('quotes/list.html', quotes=[])
+
+
+@bp.route('/quotes/<int:quote_id>/delete', methods=['POST'])
+@login_required
+def quotes_delete(quote_id):
+    q = Quote.query.get_or_404(quote_id)
+    db.session.delete(q)
+    db.session.commit()
+    flash('Quote removed.', 'info')
+    return redirect(url_for('main.quotes_list'))
 
 
 @bp.route("/skills/new", methods=["POST"])

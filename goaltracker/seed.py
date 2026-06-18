@@ -7,7 +7,7 @@ from .models import Course, DailyTask, GoalTask, InterviewGoal, Skill, User
 
 DEMO_USERNAME = "demo"
 DEMO_EMAIL = "demo@goaltracker.local"
-DEMO_PASSWORD = "DevOps123!"
+DEMO_PASSWORD = "DemoPass123!"
 
 
 def _get_or_create_user():
@@ -19,7 +19,7 @@ def _get_or_create_user():
         username=DEMO_USERNAME,
         email=DEMO_EMAIL,
         full_name="Demo User",
-        bio="Example account for DevOps interview preparation tracking.",
+    bio="Example account for general interview preparation tracking.",
         password_hash=generate_password_hash(DEMO_PASSWORD),
     )
     db.session.add(user)
@@ -63,19 +63,19 @@ def seed_demo_data():
 
     sample_goals = [
         {
-            "title": "DevOps Engineer - ABC Technologies",
+            "title": "Platform Engineer - ABC Technologies",
             "goal": {
-                "title": "DevOps Engineer - ABC Technologies",
+                "title": "Platform Engineer - ABC Technologies",
                 "company_name": "ABC Technologies",
-                "role": "DevOps Engineer",
+                "role": "Platform Engineer",
                 "interview_date": date.today() + timedelta(days=14),
                 "priority": 1,
                 "status": "Preparing",
-                "notes": "Focus on CI/CD, Kubernetes, AWS, and interview stories.",
-                "job_description": "Build CI/CD pipelines, manage Kubernetes workloads, and automate AWS infrastructure with Terraform and Jenkins.",
-                "responsibilities": "Operate production platforms, improve deployment reliability, and mentor teams on cloud tooling.",
-                "preferred_qualifications": "Docker, Kubernetes, AWS, Terraform, Jenkins, Git, Linux, shell scripting.",
-                "company_notes": "Emphasis on deployment automation and incident response.",
+                "notes": "Focus on infrastructure, automation, cloud, and interview stories.",
+                "job_description": "Build and automate infrastructure, manage cloud workloads, and develop reliable deployment pipelines.",
+                "responsibilities": "Operate production systems, improve reliability, and mentor teams on automation.",
+                "preferred_qualifications": "Cloud, Infrastructure as Code, CI/CD, Git, Linux, scripting.",
+                "company_notes": "Emphasis on automation and incident response.",
             },
             "tasks": [
                 {"title": "Review Docker networking", "due_date": date.today() + timedelta(days=2), "priority": 1, "completed": False},
