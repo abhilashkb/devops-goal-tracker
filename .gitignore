@@ -3,4 +3,5 @@ __pycache__/
 .venv/
 venv/
 goaltracker.db
+instance/goaltracker.db
 .DS_Store
