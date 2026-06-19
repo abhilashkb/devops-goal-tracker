@@ -40,7 +40,10 @@ RUN useradd --create-home appuser \
  && chown -R appuser /app /opt/venv
 USER appuser
 
+COPY start.sh /app/start.sh
+RUN chmod +x /app/start.sh
+
 EXPOSE 5000
 
-# Run with gunicorn
-CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:5000", "run:app"]
+# Use the start script instead of directly calling gunicorn
+CMD ["./start.sh"]
