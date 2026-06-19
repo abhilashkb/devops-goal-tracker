@@ -1,0 +1,8 @@
+services:
+  web:
+    image: flask-app1:latest
+    volumes:
+      # Maps the host directory to the container directory
+      - /opt/goalstracker/data:/app/instance
+    ports:
+      - "5000:5000"
