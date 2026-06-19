@@ -38,10 +38,12 @@ COPY --from=builder /app /app
 # Create an unprivileged user and set ownership
 RUN useradd --create-home appuser \
  && chown -R appuser /app /opt/venv
-USER appuser
+
 
 COPY start.sh /app/start.sh
 RUN chmod +x /app/start.sh
+
+USER appuser
 
 EXPOSE 5000
 
