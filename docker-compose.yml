@@ -1,5 +1,9 @@
 services:
   web:
+    container_name: goal-app
+    build:
+      context: .
+      dockerfile: Dockerfile
     image: flask-app1:latest
     volumes:
       # Maps the host directory to the container directory
