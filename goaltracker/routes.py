@@ -1,6 +1,6 @@
-from datetime import date
+from datetime import date, datetime
 
-from flask import Blueprint, flash, redirect, render_template, request, url_for, jsonify
+from flask import Blueprint, flash, redirect, render_template, request, url_for, jsonify, abort
 from flask_login import current_user, login_required, login_user, logout_user
 from werkzeug.security import check_password_hash, generate_password_hash
 
@@ -205,16 +205,17 @@ def goals():
     return render_template("goals/list.html", goals=items, goal_progress=goal_progress)
 
 
-@bp.route("/courses")
+@bp.route('/courses')
 @login_required
 def courses():
-    items = (
-        Course.query.join(InterviewGoal)
+    # show courses that belong to the current user's goals
+    courses = (
+        Course.query
+        .join(InterviewGoal, Course.goal_id == InterviewGoal.id)
         .filter(InterviewGoal.user_id == current_user.id)
-        .order_by(Course.created_at.desc())
         .all()
     )
-    return render_template("courses/list.html", courses=items, course_progress=course_progress)
+    return render_template('courses/list.html', courses=courses, now=datetime.utcnow())
 
 
 @bp.route("/skills")
@@ -275,35 +276,18 @@ def quotes_delete(quote_id):
 @login_required
 def skills_create():
     """Create a new skill from the global skills page. Expects form field `goal_id`."""
-    goals = InterviewGoal.query.filter_by(user_id=current_user.id).all()
-    raw_goal_id = request.form.get("goal_id")
-    if not raw_goal_id:
-        flash("Please select a goal for the new skill.", "danger")
-        return redirect(url_for("main.skills"))
-    try:
-        goal_id = int(raw_goal_id)
-    except ValueError:
-        flash("Invalid goal selected.", "danger")
-        return redirect(url_for("main.skills"))
-    goal = InterviewGoal.query.get_or_404(goal_id)
-    if not require_ownership(goal):
-        flash("You do not have access to that goal.", "danger")
-        return redirect(url_for("main.skills"))
-
-    skill = Skill(
-        goal_id=goal.id,
-        name=request.form.get("name", "").strip(),
-        confidence_level=form_int("confidence_level", 1, 1, 5),
-        status=request.form.get("status", "Not Started"),
-        notes=request.form.get("notes", "").strip(),
-        resource_url=request.form.get("resource_url", "").strip(),
-    )
+    name = request.form.get('name', '').strip()
+    if not name:
+        flash('Skill name cannot be blank.', 'warning')
+        return redirect(request.referrer or url_for('main.skills'))
+    goal_id = request.form.get('goal_id')
+    confidence = request.form.get('confidence_level') or 1
+    status = request.form.get('status') or 'Not Started'
+    skill = Skill(goal_id=goal_id, name=name, confidence_level=int(confidence), status=status)
     db.session.add(skill)
     db.session.commit()
-    log_activity(f"Added skill: {skill.name}", goal.id)
-    db.session.commit()
-    flash("Skill added.", "success")
-    return redirect(url_for("main.skills"))
+    flash('Skill added.', 'success')
+    return redirect(url_for('main.skills'))
 
 
 @bp.route("/courses/new", methods=["GET", "POST"])
@@ -462,7 +446,7 @@ def project_subtask_delete(project_id, subtask_id):
 
 
 def clone_recurring_task(task):
-    if not task.recurring or task.recurrence_type == "none":
+    if not task.recurrence_type or task.recurrence_type == "none":
         return
     due_date = task.due_date or date.today()
     if task.recurrence_type == "interval":
@@ -1020,3 +1004,68 @@ def derive_skills(goal_id):
     db.session.commit()
     flash(f"Added {created} suggested skill(s).", "success")
     return redirect(url_for("main.goal_detail", goal_id=goal.id))
+
+
+@bp.route('/courses/<int:course_id>/toggle_pause', methods=['POST'])
+@login_required
+def course_toggle_pause(course_id):
+    course = Course.query.get_or_404(course_id)
+    # ownership check via course.user_id or goal.user_id
+    owner_id = getattr(course, 'user_id', None)
+    if owner_id is None:
+        # try via goal
+        owner_id = getattr(course.goal, 'user_id', None) if getattr(course, 'goal', None) else None
+    if owner_id is not None and owner_id != current_user.id:
+        abort(403)
+
+    current = bool(getattr(course, 'paused', False))
+    # if currently paused, user is trying to resume (unpause)
+    if current:
+        # count existing in-progress courses for this user (exclude this course)
+        from .models import InterviewGoal
+        inprogress_q = (
+            Course.query
+            .join(InterviewGoal, Course.goal_id == InterviewGoal.id)
+            .filter(InterviewGoal.user_id == current_user.id, Course.paused == False)
+        )
+        inprogress_count = inprogress_q.count()
+        if inprogress_count >= 4:
+            flash('You can have at most 4 in-progress courses. Pause another course before resuming this one.', 'warning')
+            return redirect(request.referrer or url_for('main.courses'))
+
+    try:
+        setattr(course, 'paused', not current)
+        db.session.add(course)
+        db.session.commit()
+        flash('Course resumed.' if current else 'Course paused.', 'success')
+    except Exception:
+        flash('Unable to update course pause state.', 'danger')
+    return redirect(request.referrer or url_for('main.courses'))
+
+
+@bp.route('/courses/<int:course_id>/update_due', methods=['POST'])
+@login_required
+def course_update_due(course_id):
+    course = Course.query.get_or_404(course_id)
+    owner_id = getattr(course, 'user_id', getattr(course, 'owner_id', None))
+    if owner_id is not None and owner_id != current_user.id:
+        abort(403)
+    due = None
+    if request.is_json:
+        due = request.json.get('due_date')
+    else:
+        due = request.form.get('due_date')
+    if not due:
+        flash('No due date provided.', 'warning')
+        return redirect(request.referrer or url_for('main.courses'))
+    try:
+        parsed = datetime.strptime(due, '%Y-%m-%d').date()
+        setattr(course, 'due_date', parsed)
+        db.session.add(course)
+        db.session.commit()
+        flash('Due date updated.', 'success')
+    except ValueError:
+        flash('Invalid date format. Use YYYY-MM-DD.', 'danger')
+    except Exception:
+        flash('Unable to update due date.', 'danger')
+    return redirect(request.referrer or url_for('main.courses'))

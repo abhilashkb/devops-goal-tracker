@@ -185,3 +185,13 @@ def seed_demo_data():
         )
 
     db.session.commit()
+
+    # assign sample due dates and paused states to recently created courses
+    demo_courses = Course.query.filter_by(user_id=user.id).all()
+    for idx, course in enumerate(demo_courses):
+        # stagger due dates 7 days apart
+        course.due_date = date.today() + timedelta(days=7 * (idx + 1))
+        # pause every other course for demonstration
+        course.paused = (idx % 2 == 0)
+        db.session.add(course)
+    db.session.commit()

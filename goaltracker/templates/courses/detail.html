@@ -1,0 +1,16 @@
+<div class="course-controls mb-3 d-flex justify-content-between align-items-center gap-3">
+  <div>
+    {% if course.paused %}
+      <span class="badge bg-warning text-dark">Paused</span>
+    {% endif %}
+  </div>
+  <div class="d-flex align-items-center gap-2">
+    <form method="post" action="{{ url_for('main.course_toggle_pause', course_id=course.id) }}" style="margin:0;">
+      <button class="btn btn-sm btn-outline-secondary" type="submit">{% if course.paused %}Resume{% else %}Pause{% endif %}</button>
+    </form>
+    <form method="post" action="{{ url_for('main.course_update_due', course_id=course.id) }}" class="d-flex gap-2" style="margin:0;">
+      <input type="date" name="due_date" class="form-control form-control-sm" value="{{ course.due_date.isoformat() if course.due_date else '' }}">
+      <button class="btn btn-sm btn-primary" type="submit">Set due date</button>
+    </form>
+  </div>
+</div>

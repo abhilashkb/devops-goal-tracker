@@ -22,16 +22,31 @@
               <h2 class="h4 mb-1">{{ course.name }}</h2>
               <div class="text-secondary small">{{ course.platform }}{% if course.instructor %} · {{ course.instructor }}{% endif %}</div>
             </div>
-          <span class="badge text-bg-dark">{{ course.goal.title }}</span>
+            <div class="d-flex flex-column align-items-end">
+              <div class="mb-2 d-flex align-items-center gap-2">
+                <span class="badge text-bg-dark">{{ course.goal.title }}</span>
+                {% if course.paused %}
+                  <span class="badge bg-warning text-dark">Paused</span>
+                {% else %}
+                  <span class="badge bg-success">In progress</span>
+                {% endif %}
+              </div>
+              <div>
+                <form method="post" action="{{ url_for('main.course_toggle_pause', course_id=course.id) }}" style="display:inline">
+                  <button class="btn btn-sm {% if course.paused %}btn-outline-success{% else %}btn-outline-secondary{% endif %}" type="submit">{% if course.paused %}Resume{% else %}Pause{% endif %}</button>
+                </form>
+              </div>
+            </div>
           </div>
 
         <div class="mb-2 small text-secondary">Progress</div>
+        {% set pct = course_progress(course) ~ '%' %}
         <div class="progress">
-          <div class="progress-bar" style="width: {{ course_progress(course) }}%"></div>
+          <div class="progress-bar" style="width: {{ pct }};"></div>
         </div>
         <div class="d-flex justify-content-between mt-2 small text-secondary">
           <span>{{ course.completed_lessons }}/{{ course.total_lessons }} lessons</span>
-          <span>{{ course_progress(course) }}%</span>
+          <span>{{ pct }}</span>
         </div>
 
         {% if course.notes %}
@@ -105,6 +120,28 @@
             {% endfor %}
           </div>
         {% endif %}
+
+        <div class="course-card p-3 mt-4">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <h5 class="mb-1">{{ course.title }}</h5>
+              <div class="text-muted small">Provider: {{ course.provider or 'N/A' }}</div>
+            </div>
+          </div>
+          <p class="mt-2">{{ course.description }}</p>
+          <div class="d-flex justify-content-between align-items-center mt-2">
+            <div class="small text-muted">Due: {{ course.due_date if course.due_date else 'Not set' }}</div>
+            <div class="small text-secondary remaining-days" data-due="{{ course.due_date.isoformat() if course.due_date else '' }}">{{ (course.due_date - now.date()).days if course.due_date else '' }}</div>
+          </div>
+          <form method="post" action="{{ url_for('main.course_update_due', course_id=course.id) }}" class="row g-2 mt-2">
+            <div class="col-auto">
+              <input type="date" name="due_date" class="form-control form-control-sm" value="{{ course.due_date.isoformat() if course.due_date else '' }}">
+            </div>
+            <div class="col-auto">
+              <button class="btn btn-sm btn-primary">Set due date</button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   {% else %}

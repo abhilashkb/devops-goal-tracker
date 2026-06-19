@@ -77,6 +77,7 @@ course_skill = db.Table(
 class Course(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     goal_id = db.Column(db.Integer, db.ForeignKey("interview_goal.id"), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
     name = db.Column(db.String(180), nullable=False)
     platform = db.Column(db.String(120), nullable=False, default="")
     url = db.Column(db.String(500), nullable=False, default="")
@@ -85,6 +86,8 @@ class Course(db.Model):
     completed_lessons = db.Column(db.Integer, default=0, nullable=False)
     notes = db.Column(db.Text, default="")
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    paused = db.Column(db.Boolean, default=False)
+    due_date = db.Column(db.Date, nullable=True)
 
     skills = db.relationship("Skill", secondary=course_skill, backref="courses")
     chapters = db.relationship("Chapter", backref="course", lazy=True, cascade="all, delete-orphan")

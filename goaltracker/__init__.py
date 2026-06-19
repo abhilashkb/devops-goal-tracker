@@ -32,6 +32,30 @@ def create_app():
     from .routes import bp
     app.register_blueprint(bp)
 
+    # register a context processor to adjust flashed messages wording
+    @app.context_processor
+    def _replace_project_in_flashes():
+        from flask import get_flashed_messages as _orig_get_flashed
+        def _get_flashed_messages(with_categories=False, category_filter=None):
+            msgs = _orig_get_flashed(with_categories=with_categories, category_filter=category_filter)
+            if with_categories:
+                return [(cat, (msg.replace('project', 'goal') if isinstance(msg, str) else msg)) for cat, msg in msgs]
+            return [(m.replace('project', 'goal') if isinstance(m, str) else m) for m in msgs]
+        return dict(get_flashed_messages=_get_flashed_messages)
+
+    # expose helper to templates: course_progress
+    @app.template_global()
+    def course_progress(course):
+        """Return completion percentage for a course (0-100)."""
+        try:
+            total = int(getattr(course, 'total_lessons', 0) or 0)
+            completed = int(getattr(course, 'completed_lessons', 0) or 0)
+            if total <= 0:
+                return 0
+            return int(round((completed / total) * 100))
+        except Exception:
+            return 0
+
     with app.app_context():
         from . import models  # noqa: F401
         db.create_all()
